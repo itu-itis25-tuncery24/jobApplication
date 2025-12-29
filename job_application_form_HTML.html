@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Application Form</title>
+    <style>
+        .error { color: red; font-size: 0.9em; margin-top: 5px; display: block; }
+        .success { color: green; font-size: 0.9em; margin-top: 5px; display: block; }
+        #previewBox { width: 100%; margin-top: 10px; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<h2>Job Application Form</h2>
+
+<form id="applicationForm">
+
+    <div>
+        <label for="tckn">TCKN</label><br>
+        <input type="text" id="tckn" name="tckn" placeholder="11-digit Turkish ID number" required>
+        <span id="tckn_error" class="error"></span>
+    </div>
+    <br>
+
+    <div>
+        <label for="fullName">Full Name</label><br>
+        <input type="text" id="fullName" name="fullName" placeholder="Name Surname" required>
+        <span id="fullName_error" class="error"></span>
+    </div>
+    <br>
+
+    <div>
+        <label for="dob">Date of Birth</label><br>
+        <input type="date" id="dob" name="dob" required>
+        <span id="dob_error" class="error"></span>
+    </div>
+    <br>
+
+    <div>
+        <label>Gender</label><br>
+        <input type="radio" id="male" name="gender" value="Male" required>
+        <label for="male">Male</label><br>
+        <input type="radio" id="female" name="gender" value="Female" required>
+        <label for="female">Female</label>
+    </div>
+    <br>
+
+    <div>
+        <label>Skills (Optional)</label><br>
+        <input type="checkbox" id="java" name="skills" value="Java">
+        <label for="java">Java</label><br>
+        <input type="checkbox" id="javascript" name="skills" value="JavaScript">
+        <label for="javascript">JavaScript</label><br>
+        <input type="checkbox" id="python" name="skills" value="Python">
+        <label for="python">Python</label><br>
+        <input type="checkbox" id="cpp" name="skills" value="C++">
+        <label for="cpp">C++</label><br>
+        <input type="checkbox" id="csharp" name="skills" value="C#">
+        <label for="csharp">C#</label>
+    </div>
+    <br>
+
+    <div>
+        <label for="salaryType">Salary Type</label><br>
+        <select id="salaryType" name="salaryType" required>
+            <option value="">Select salary type</option>
+            <option value="Gross">Gross</option>
+            <option value="Net">Net</option>
+        </select>
+    </div>
+    <br>
+
+    <div>
+        <label for="salaryAmount">Salary Expectation</label><br>
+        <input type="number" id="salaryAmount" name="salaryAmount" placeholder="Monthly amount" required>
+        <span id="salary_error" class="error"></span>
+    </div>
+    <br>
+
+    <div>
+        <label for="experience">Years of Experience</label><br>
+        <input type="number" id="experience" name="experience" placeholder="0 or more" required>
+        <span id="experience_error" class="error"></span>
+    </div>
+    <br>
+
+    <div>
+        <button type="submit">Submit Application</button>
+    </div>
+
+</form>
+
+<p id="submit_result"></p>
+
+<h3>Application Summary</h3>
+<textarea id="previewBox" rows="10" readonly placeholder="Summary will appear here upon acceptance."></textarea>
+
+<script src="TCKN_validation.js"></script>
+<script src="FullName_validation.js"></script>
+<script src="DOB_validation.js"></script>
+<script src="Salary_validation.js"></script>
+<script src="Experience_validation.js"></script>
+
+<script>
+    const form = document.getElementById("applicationForm");
+    const tcknInput = document.getElementById("tckn");
+    const nameInput = document.getElementById("fullName");
+    const dobInput = document.getElementById("dob");
+    const salaryInput = document.getElementById("salaryAmount");
+    const expInput = document.getElementById("experience");
+    
+    const tcknError = document.getElementById("tckn_error");
+    const nameError = document.getElementById("fullName_error");
+    const dobError = document.getElementById("dob_error");
+    const salaryError = document.getElementById("salary_error");
+    const expError = document.getElementById("experience_error");
+    
+    const submitResult = document.getElementById("submit_result");
+    const previewBox = document.getElementById("previewBox");
+
+    tcknInput.addEventListener("blur", function() {
+        if (isValidTCKN(this.value)) {
+            tcknError.textContent = "";
+        } else {
+            tcknError.textContent = "Invalid TCKN (11 digits, valid checksum).";
+        }
+    });
+
+    nameInput.addEventListener("blur", function() {
+        if (isValidFullName(this.value)) {
+            nameError.textContent = "";
+        } else {
+            nameError.textContent = "Min 6 characters, no digits allowed.";
+        }
+    });
+
+    dobInput.addEventListener("blur", function() {
+        if (isValidDOB(this.value)) {
+            dobError.textContent = "";
+        } else {
+            dobError.textContent = "Age must be > 17 and < 36.";
+        }
+    });
+
+    salaryInput.addEventListener("blur", function() {
+        if (isValidSalary(this.value)) {
+            salaryError.textContent = "";
+        } else {
+            salaryError.textContent = "Salary cannot be negative.";
+        }
+    });
+
+    expInput.addEventListener("blur", function() {
+        if (isValidExperience(this.value, dobInput.value)) {
+            expError.textContent = "";
+        } else {
+            expError.textContent = "Cannot be negative or greater than (Age - 10).";
+        }
+    });
+
+    form.addEventListener("submit", function (event) {
+        event.preventDefault(); 
+        
+        let isValid = true;
+        let firstInvalid = null;
+
+        if (!isValidTCKN(tcknInput.value)) {
+            tcknError.textContent = "Invalid TCKN.";
+            isValid = false;
+            if (!firstInvalid) firstInvalid = tcknInput;
+        }
+
+        if (!isValidFullName(nameInput.value)) {
+            nameError.textContent = "Invalid Name.";
+            isValid = false;
+            if (!firstInvalid) firstInvalid = nameInput;
+        }
+
+        if (!isValidDOB(dobInput.value)) {
+            dobError.textContent = "Invalid Age.";
+            isValid = false;
+            if (!firstInvalid) firstInvalid = dobInput;
+        }
+
+        if (!isValidSalary(salaryInput.value)) {
+            salaryError.textContent = "Invalid Salary.";
+            isValid = false;
+            if (!firstInvalid) firstInvalid = salaryInput;
+        }
+
+        if (!isValidExperience(expInput.value, dobInput.value)) {
+            expError.textContent = "Invalid Experience.";
+            isValid = false;
+            if (!firstInvalid) firstInvalid = expInput;
+        }
+
+        if (!isValid) {
+            submitResult.textContent = "Application rejected: Please check invalid fields.";
+            submitResult.className = "error";
+            previewBox.value = ""; 
+            firstInvalid.focus();
+        } else {
+            submitResult.textContent = "Application accepted!";
+            submitResult.className = "success";
+            generateSummary();
+        }
+    });
+
+    function generateSummary() {
+        let today = new Date();
+        let birthDate = new Date(dobInput.value);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        let m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+
+        let gender = document.querySelector('input[name="gender"]:checked').value;
+
+        let skills = [];
+        document.querySelectorAll('input[name="skills"]:checked').forEach(chk => {
+            skills.push(chk.value);
+        });
+        let skillsStr = skills.length > 0 ? skills.join(", ") : "None";
+
+        let salaryType = document.getElementById("salaryType").value;
+
+        let summaryText = `TCKN: ${tcknInput.value}\n` +
+                          `Full Name: ${nameInput.value}\n` +
+                          `Date of Birth: ${dobInput.value}\n` +
+                          `Age: ${age}\n` +
+                          `Gender: ${gender}\n` +
+                          `Skills: ${skillsStr}\n` +
+                          `Salary: ${salaryInput.value} (${salaryType})\n` +
+                          `Experience: ${expInput.value} years`;
+
+        previewBox.value = summaryText;
+    }
+</script>
+
+</body>
+</html>
